@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import appConfig from './config/app.config'
 import databaseConfig from './config/database.config'
+import { validateEnv } from './config/env.validation'
 import rabbitmqConfig from './config/rabbitmq.config'
 import { OrdersModule } from './modules/orders/orders.module'
 import { RabbitMQModule } from './modules/rabbitmq/rabbitmq.module'
@@ -11,6 +12,12 @@ import { RabbitMQModule } from './modules/rabbitmq/rabbitmq.module'
 	imports: [
 		ConfigModule.forRoot({
 			isGlobal: true,
+			envFilePath: [
+				`.env.${process.env.NODE_ENV || 'development'}.local`,
+				`.env.${process.env.NODE_ENV || 'development'}`,
+				'.env'
+			],
+			validate: validateEnv,
 			load: [appConfig, databaseConfig, rabbitmqConfig]
 		}),
 		TypeOrmModule.forRootAsync({

@@ -12,23 +12,23 @@ import { OrderItemEntity } from './order-item.entity'
 @Entity('orders')
 export class OrderEntity {
 	@PrimaryGeneratedColumn('uuid')
-	id: string
+	id!: string
 
 	@Column({ type: 'uuid' })
-	userId: string
+	userId!: string
 
 	@Column({
 		type: 'enum',
 		enum: OrderStatus,
 		default: OrderStatus.PENDING
 	})
-	status: OrderStatus
+	status!: OrderStatus
 
 	@Column({ type: 'decimal', precision: 12, scale: 2 })
-	totalAmount: number
+	totalAmount!: number
 
 	@Column({ type: 'varchar', length: 10, default: 'USD' })
-	currency: string
+	currency!: string
 
 	@Column({ type: 'text', nullable: true })
 	deliveryAddress?: string
@@ -37,11 +37,11 @@ export class OrderEntity {
 		cascade: true,
 		eager: true
 	})
-	items: OrderItemEntity[]
+	items!: OrderItemEntity[]
 
 	@CreateDateColumn({ type: 'timestamp with time zone' })
-	createdAt: Date
+	createdAt!: Date
 
 	@UpdateDateColumn({ type: 'timestamp with time zone' })
-	updatedAt: Date
+	updatedAt!: Date
 }

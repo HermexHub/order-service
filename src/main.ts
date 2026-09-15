@@ -10,7 +10,8 @@ async function bootstrap() {
 
 	const appContext = await NestFactory.createApplicationContext(AppModule)
 	const configService = appContext.get(ConfigService)
-	const grpcPort = configService.get<number>('app.grpcPort', 50051)
+	const grpcHost = configService.get<string>('app.grpcHost')!
+	const grpcPort = configService.get<number>('app.grpcPort')!
 	await appContext.close()
 
 	const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -20,14 +21,14 @@ async function bootstrap() {
 			options: {
 				package: ORDER_PACKAGE_NAME,
 				protoPath: ORDER_PROTO_PATH,
-				url: `0.0.0.0:${grpcPort}`
+				url: `${grpcHost}:${grpcPort}`
 			}
 		}
 	)
 
 	await app.listen()
 	logger.log(
-		`🚀 Order Service gRPC microservice is running on: 0.0.0.0:${grpcPort}`
+		`🚀 Order Service gRPC microservice is running on: ${grpcHost}:${grpcPort}`
 	)
 }
 
