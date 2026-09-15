@@ -2,7 +2,7 @@ import {
 	Injectable,
 	Logger,
 	NotFoundException,
-	OnModuleInit
+	OnApplicationBootstrap
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -25,7 +25,7 @@ import { OrderItemEntity } from './entities/order-item.entity'
 import { OrderEntity } from './entities/order.entity'
 
 @Injectable()
-export class OrdersService implements OnModuleInit {
+export class OrdersService implements OnApplicationBootstrap {
 	private readonly logger = new Logger(OrdersService.name)
 
 	constructor(
@@ -36,9 +36,8 @@ export class OrdersService implements OnModuleInit {
 		private readonly rabbitMQService: RabbitMQService
 	) {}
 
-	onModuleInit(): void {
-		// Start consuming saga resolution events asynchronously after module starts
-		setTimeout(() => this.listenToSagaEvents(), 1000)
+	async onApplicationBootstrap(): Promise<void> {
+		await this.listenToSagaEvents()
 	}
 
 	async createOrder(
