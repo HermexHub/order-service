@@ -20,6 +20,7 @@ import {
 	RabbitExchanges,
 	RabbitQueues
 } from '@hermex/contracts'
+import { MetricsService } from '../metrics/metrics.service'
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service'
 import { OrderItemEntity } from './entities/order-item.entity'
 import { OrderEntity } from './entities/order.entity'
@@ -33,7 +34,8 @@ export class OrdersService implements OnApplicationBootstrap {
 		private readonly orderRepository: Repository<OrderEntity>,
 		@InjectRepository(OrderItemEntity)
 		private readonly orderItemRepository: Repository<OrderItemEntity>,
-		private readonly rabbitMQService: RabbitMQService
+		private readonly rabbitMQService: RabbitMQService,
+		private readonly metricsService: MetricsService
 	) {}
 
 	async onApplicationBootstrap(): Promise<void> {
@@ -100,6 +102,8 @@ export class OrdersService implements OnApplicationBootstrap {
 			orderCreatedEvent
 		)
 
+		this.metricsService.recordOrderCreated()
+
 		return {
 			orderId: savedOrder.id,
 			status: savedOrder.status,
@@ -148,6 +152,15 @@ export class OrdersService implements OnApplicationBootstrap {
 		order.status = status
 		await this.orderRepository.save(order)
 		this.logger.log(`Order ${orderId} status updated to: ${status}`)
+
+		if (status === OrderStatus.CONFIRMED || status === OrderStatus.CANCELLED) {
+			const durationSeconds =
+				(Date.now() - new Date(order.createdAt).getTime()) / 1000
+			this.metricsService.recordSagaFinished(
+				status === OrderStatus.CONFIRMED ? 'confirmed' : 'cancelled',
+				Math.max(durationSeconds, 0.001)
+			)
+		}
 	}
 
 	private async listenToSagaEvents(): Promise<void> {
