@@ -7,7 +7,10 @@ import { AppModule } from './app.module'
 import appConfig from './config/app.config'
 import { validateEnv } from './config/env.validation'
 
+import { GrpcTraceInterceptor, HermexLogger } from '@hermex/core'
+
 async function bootstrap() {
+	const hermexLogger = new HermexLogger({ serviceName: 'order-service' })
 	const logger = new Logger('OrderServiceBootstrap')
 
 	// Load and validate configuration independently without initializing AppModule side-effects
@@ -37,10 +40,13 @@ async function bootstrap() {
 				package: ORDER_PACKAGE_NAME,
 				protoPath: ORDER_PROTO_PATH,
 				url: `${grpcHost}:${grpcPort}`
-			}
+			},
+			logger: hermexLogger
 		}
 	)
 
+	app.useLogger(hermexLogger)
+	app.useGlobalInterceptors(new GrpcTraceInterceptor())
 	app.enableShutdownHooks()
 
 	await app.listen()
