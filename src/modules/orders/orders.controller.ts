@@ -8,7 +8,7 @@ import {
 	ORDER_GRPC_METHODS,
 	ORDER_SERVICE_NAME
 } from '@hermex/contracts'
-import { CorrelationId } from '@hermex/core/decorators'
+import { CorrelationId } from '@hermex/core'
 import { OrdersService } from './orders.service'
 
 @Controller()
