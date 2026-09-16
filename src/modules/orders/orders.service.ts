@@ -44,7 +44,8 @@ export class OrdersService implements OnApplicationBootstrap {
 		request: CreateOrderRequest,
 		correlationId: string = uuidv4()
 	): Promise<CreateOrderResponse> {
-		const totalAmount = request.items.reduce(
+		const items = request.items || []
+		const totalAmount = items.reduce(
 			(sum, item) => sum + item.quantity * item.price,
 			0
 		)
@@ -54,17 +55,22 @@ export class OrdersService implements OnApplicationBootstrap {
 			status: OrderStatus.PENDING,
 			totalAmount,
 			currency: 'USD',
-			deliveryAddress: request.deliveryAddress,
-			items: request.items.map((item) =>
-				this.orderItemRepository.create({
-					productId: item.productId,
-					quantity: item.quantity,
-					price: item.price
-				})
-			)
+			deliveryAddress: request.deliveryAddress
 		})
 
 		const savedOrder = await this.orderRepository.save(order)
+
+		const orderItems = items.map((item) =>
+			this.orderItemRepository.create({
+				orderId: savedOrder.id,
+				order: savedOrder,
+				productId: item.productId,
+				quantity: item.quantity,
+				price: item.price
+			})
+		)
+		savedOrder.items = await this.orderItemRepository.save(orderItems)
+
 
 		this.logger.log(
 			`Order created with ID: ${savedOrder.id} in PENDING state (Correlation: ${correlationId})`
