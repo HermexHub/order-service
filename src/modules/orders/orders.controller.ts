@@ -1,34 +1,29 @@
 import { Controller } from '@nestjs/common'
 import { GrpcMethod } from '@nestjs/microservices'
-import { Metadata } from '@grpc/grpc-js'
 import {
 	CreateOrderRequest,
 	CreateOrderResponse,
 	GetOrderRequest,
 	GetOrderResponse,
+	ORDER_GRPC_METHODS,
 	ORDER_SERVICE_NAME
 } from '@hermex/contracts'
+import { CorrelationId } from '@hermex/core/decorators'
 import { OrdersService } from './orders.service'
 
 @Controller()
 export class OrdersController {
 	constructor(private readonly ordersService: OrdersService) {}
 
-	@GrpcMethod(ORDER_SERVICE_NAME, 'CreateOrder')
+	@GrpcMethod(ORDER_SERVICE_NAME, ORDER_GRPC_METHODS.CREATE_ORDER)
 	async createOrder(
 		data: CreateOrderRequest,
-		metadata: Metadata
+		@CorrelationId() correlationId?: string
 	): Promise<CreateOrderResponse> {
-		const correlationIdHeader = metadata?.get('x-correlation-id')
-		const correlationId =
-			correlationIdHeader && correlationIdHeader.length > 0
-				? (correlationIdHeader[0] as string)
-				: undefined
-
 		return this.ordersService.createOrder(data, correlationId)
 	}
 
-	@GrpcMethod(ORDER_SERVICE_NAME, 'GetOrder')
+	@GrpcMethod(ORDER_SERVICE_NAME, ORDER_GRPC_METHODS.GET_ORDER)
 	async getOrder(data: GetOrderRequest): Promise<GetOrderResponse> {
 		return this.ordersService.getOrder(data.orderId)
 	}
