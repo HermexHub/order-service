@@ -56,7 +56,7 @@ export class OrdersService implements OnApplicationBootstrap {
 			userId: request.userId,
 			status: OrderStatus.PENDING,
 			totalAmount,
-			currency: 'USD',
+			currency: 'UAH',
 			deliveryAddress: request.deliveryAddress
 		})
 
